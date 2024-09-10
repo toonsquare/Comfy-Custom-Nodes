@@ -10,19 +10,28 @@ import time
 from server import PromptServer
 
 
+class AnyType(str):
+    """A special class that is always equal in not equal comparisons. Credit to pythongosssss"""
+
+    def __ne__(self, __value: object) -> bool:
+        return False
+
+
+any = AnyType("*")
+
 
 def pil2tensor(image):
-    return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0) 
-       
-class PrintHelloWorld:     
+    return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
+
+
+class PrintHelloWorld:
 
     @classmethod
     def INPUT_TYPES(cls):
-               
-        return {"required": {       
-                    "text": ("STRING", {"multiline": False, "default": "Hello World"}),
-                    }
-                }
+        return {"required": {
+            "text": ("STRING", {"multiline": False, "default": "Hello World"}),
+        }
+        }
 
     RETURN_TYPES = ()
     FUNCTION = "print_text"
@@ -30,20 +39,20 @@ class PrintHelloWorld:
     CATEGORY = "Toonsquare"
 
     def print_text(self, text):
-
         print(f"Tutorial Text : {text}")
-        
+
         return {}
+
 
 class DeepLTranslate:
 
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {
-                    "API_key": ("STRING", {"multiline": False, "default": "enter api key"}),
-                    "text": ("STRING", {"multiline": True, "dynamicPrompts": True})
-                    }
-                }
+            "API_key": ("STRING", {"multiline": False, "default": "enter api key"}),
+            "text": ("STRING", {"multiline": True, "dynamicPrompts": True})
+        }
+        }
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "translate_to_english"
@@ -57,11 +66,12 @@ class DeepLTranslate:
 
         return (result,)
 
+
 class ImageToGrayScale:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE", )}}
+        return {"required": {"image": ("IMAGE",)}}
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "image_to_grayscale"
@@ -78,6 +88,7 @@ class ImageToGrayScale:
         result = np.array(image_gray).astype(np.float32) / 255.0
         result = torch.from_numpy(result)[None,]
         return (result,)
+
 
 class WallpaperPromptGenerator:
 
@@ -119,9 +130,9 @@ class WallpaperPromptGenerator:
         )
         prompt = completion.choices[0].message.content
 
-
         return {"ui": {"prompt": (prompt,)}, "result": (prompt,)}
         # return (result,)
+
 
 class PromptModifier:
 
@@ -140,7 +151,6 @@ class PromptModifier:
     CATEGORY = "Toonsquare"
 
     def generate_prompt(self, openAI_key, prompt, modify):
-
         client = OpenAI(api_key=openAI_key)
         completion = client.chat.completions.create(
             model="gpt-4o",
@@ -151,7 +161,7 @@ class PromptModifier:
                 },
                 {
                     "role": "user",
-                    "content": "프롬프트 : "+prompt+', 수정 지시 사항 : '+modify,
+                    "content": "프롬프트 : " + prompt + ', 수정 지시 사항 : ' + modify,
                 },
             ],
         )
@@ -159,13 +169,14 @@ class PromptModifier:
 
         return (result,)
 
+
 class colorReferenceImage:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": { "width": ("INT", {"default": 1024, "min": 16, "step": 8}),
-                              "height": ("INT", {"default": 1024, "min": 16, "step": 8}),
-                              "hex": ("STRING", {"multiline": False, "default": "#000000"})}}
+        return {"required": {"width": ("INT", {"default": 1024, "min": 16, "step": 8}),
+                             "height": ("INT", {"default": 1024, "min": 16, "step": 8}),
+                             "hex": ("STRING", {"multiline": False, "default": "#000000"})}}
 
     CATEGORY = "image"
     RETURN_TYPES = ("IMAGE",)
@@ -179,13 +190,14 @@ class colorReferenceImage:
         image = np.array(image).astype(np.float32) / 255.0
         image = torch.from_numpy(image)[None,]
 
-        return (image, )
+        return (image,)
+
 
 class ImageToColorPalette:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE", )}}
+        return {"required": {"image": ("IMAGE",)}}
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "image_to_colorpalette"
@@ -239,12 +251,13 @@ class ImageToColorPalette:
         # result = to_tensor(image_gray)
         return (result,)
 
+
 class GetResultAnything:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required":{},
-                "optional": { "anything" : ("*", {}), }}
+        return {"required": {},
+                "optional": {"anything": (any, {}), }}
 
     RETURN_TYPES = ()
     FUNCTION = "get_result_anything"
@@ -253,7 +266,7 @@ class GetResultAnything:
 
     def get_result_anything(self, anything):
         server = PromptServer.instance
-        server.send_sync("status", {"status": "time to get result", "result":anything}, server.client_id)
+        server.send_sync("status", {"status": "time to get result", "result": anything}, server.client_id)
         return ()
 
     def IS_CHANGED(s):
